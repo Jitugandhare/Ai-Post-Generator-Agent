@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Post Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 1.1rem;
+        }
+
+        .topic-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .topic-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            animation: pulse 2s infinite;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .results {
+            display: none;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .summary-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .summary-content {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+        }
+
+        .post-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--platform-color), var(--platform-color-light));
+        }
+
+        .linkedin {
+            --platform-color: #0077b5;
+            --platform-color-light: #00a0dc;
+        }
+
+        .twitter {
+            --platform-color: #1da1f2;
+            --platform-color-light: #1da1f2;
+        }
+
+        .instagram {
+            --platform-color: #e4405f;
+            --platform-color-light: #fd1d1d;
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .linkedin .platform-icon {
+            background: #0077b5;
+        }
+
+        .twitter .platform-icon {
+            background: #1da1f2;
+        }
+
+        .instagram .platform-icon {
+            background: #e4405f;
+        }
+
+        .platform-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .post-content {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            min-height: 120px;
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            background: var(--platform-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .copy-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background: #48bb78;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #c53030;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .input-section {
+                padding: 25px;
+            }
+
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>✨ Social Media Post Generator</h1>
+            <p>Transform any topic into engaging content for LinkedIn, Twitter, and Instagram</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="topic">What topic would you like to create posts about?</label>
+                <input type="text" id="topic" class="topic-input"
+                    placeholder="e.g., Latest AI trends, sustainable fashion, productivity tips..." />
+            </div>
+            <button id="generateBtn" class="generate-btn">
+                Generate Posts ✨
+            </button>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <h3>🔍 Researching your topic...</h3>
+            <p>Gathering the latest information and crafting your posts</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="summary-section">
+                <h2>📋 Research Summary</h2>
+                <div class="summary-content" id="summaryContent"></div>
+            </div>
+
+            <div class="posts-grid">
+                <div class="post-card linkedin">
+                    <div class="platform-header">
+                        <div class="platform-icon">in</div>
+                        <div class="platform-name">LinkedIn</div>
+                    </div>
+                    <div class="post-content" id="linkedinPost"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('linkedinPost', this)">
+                        📋 Copy LinkedIn Post
+                    </button>
+                </div>
+
+                <div class="post-card twitter">
+                    <div class="platform-header">
+                        <div class="platform-icon">𝕏</div>
+                        <div class="platform-name">Twitter</div>
+                    </div>
+                    <div class="post-content" id="twitterPost"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('twitterPost', this)">
+                        📋 Copy Twitter Post
+                    </button>
+                </div>
+
+                <div class="post-card instagram">
+                    <div class="platform-header">
+                        <div class="platform-icon">📷</div>
+                        <div class="platform-name">Instagram</div>
+                    </div>
+                    <div class="post-content" id="instagramPost"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('instagramPost', this)">
+                        📋 Copy Instagram Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 6 + 4 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Initialize particles
+        createParticles();
+
+        // DOM elements
+        const topicInput = document.getElementById('topic');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const error = document.getElementById('error');
+
+        // Generate posts function
+        async function generatePosts() {
+            const topic = topicInput.value.trim();
+
+            if (!topic) {
+                showError('Please enter a topic to generate posts about.');
+                return;
+            }
+
+            // Show loading state
+            showLoading();
+            hideError();
+            hideResults();
+
+            try {
+                const response = await fetch('http://localhost:3000/generate-posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (err) {
+                console.error('Error:', err);
+                showError('Failed to generate posts. Please make sure your server is running on localhost:3000 and try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display results
+        function displayResults(data) {
+            // Display summary
+            document.getElementById('summaryContent').textContent = data.summary;
+
+            // Parse and display polished posts
+            try {
+                // Try to parse as JSON first
+                let posts;
+                if (typeof data.polishedPosts === 'string') {
+                    // If it's a string, try to extract JSON or parse the text
+                    const jsonMatch = data.polishedPosts.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        posts = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // Fallback to raw posts if parsing fails
+                        posts = data.rawPosts;
+                    }
+                } else {
+                    posts = data.polishedPosts;
+                }
+
+                // Clean and display posts
+                document.getElementById('linkedinPost').textContent = cleanPost(posts.linkedin || posts.LinkedIn || 'No LinkedIn post generated');
+                document.getElementById('twitterPost').textContent = cleanPost(posts.twitter || posts.Twitter || 'No Twitter post generated');
+                document.getElementById('instagramPost').textContent = cleanPost(posts.instagram || posts.Instagram || 'No Instagram post generated');
+
+            } catch (parseError) {
+                console.error('Parse error:', parseError);
+                // Fallback to raw posts
+                document.getElementById('linkedinPost').textContent = cleanPost(data.rawPosts.linkedin || 'No LinkedIn post generated');
+                document.getElementById('twitterPost').textContent = cleanPost(data.rawPosts.twitter || 'No Twitter post generated');
+                document.getElementById('instagramPost').textContent = cleanPost(data.rawPosts.instagram || 'No Instagram post generated');
+            }
+
+            showResults();
+        }
+
+        // Clean post content
+        function cleanPost(post) {
+            if (typeof post !== 'string') return 'No content generated';
+
+            return post
+                .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+                .replace(/^#+\s*/gm, '') // Remove markdown headers
+                .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+                .replace(/^\s*[-*]\s*/gm, '') // Remove bullet points
+                .replace(/^\d+\.\s*/gm, '') // Remove numbered lists
+                .trim();
+        }
+
+        // Copy to clipboard function
+        async function copyToClipboard(elementId, button) {
+            const text = document.getElementById(elementId).textContent;
+
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                showError('Failed to copy to clipboard. Please try selecting and copying manually.');
+            }
+        }
+
+        // UI state functions
+        function showLoading() {
+            loading.classList.add('active');
+            generateBtn.disabled = true;
+        }
+
+        function hideLoading() {
+            loading.classList.remove('active');
+            generateBtn.disabled = false;
+        }
+
+        function showResults() {
+            results.classList.add('active');
+        }
+
+        function hideResults() {
+            results.classList.remove('active');
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function hideError() {
+            error.classList.remove('active');
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', generatePosts);
+
+        topicInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generatePosts();
+            }
+        });
+
+        // Focus on input when page loads
+        window.addEventListener('load', () => {
+            topicInput.focus();
+        });
+
+        // Add some interactive hover effects
+        document.querySelectorAll('.post-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+
+</html>
